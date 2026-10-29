@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f6f1" />
+    <title>Daymark | Personal Task Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="topbar">
+        <a class="wordmark" href="#" aria-label="Daymark home">
+          <span class="wordmark-mark" aria-hidden="true">d.</span>
+          <span>daymark</span>
+        </a>
+        <span class="topbar-note">A little more focus, every day.</span>
+      </header>
+
+      <section class="tracker" aria-labelledby="page-title">
+        <div class="intro">
+          <p class="eyebrow"><span class="eyebrow-dot"></span> YOUR PERSONAL SPACE</p>
+          <h1 id="page-title">Make room<br />for what matters.</h1>
+          <p class="intro-copy">Keep today's priorities close. One small step at a time.</p>
+        </div>
+
+        <section class="task-panel" aria-label="Your tasks">
+          <form class="task-form" id="task-form">
+            <label class="visually-hidden" for="task-input">Add a task</label>
+            <input
+              id="task-input"
+              name="task"
+              type="text"
+              placeholder="What would you like to get done?"
+              autocomplete="off"
+              maxlength="160"
+              required
+            />
+            <button class="add-button" type="submit">
+              <span aria-hidden="true">+</span>
+              <span>Add task</span>
+            </button>
+          </form>
+
+          <div class="list-heading">
+            <h2>YOUR TASKS</h2>
+            <span class="task-count" id="task-count">0 tasks</span>
+          </div>
+
+          <p class="empty-state" id="empty-state">A clear list is a fresh start. Add your first task above.</p>
+          <ul class="task-list" id="task-list" aria-label="Task list"></ul>
+          <p class="visually-hidden" id="status-message" role="status" aria-live="polite"></p>
+        </section>
+
+        <footer class="page-footer">
+          <span>Small steps count.</span>
+          <span class="footer-spark" aria-hidden="true">✳</span>
+        </footer>
+      </section>
+    </main>
+  </body>
+</html>
