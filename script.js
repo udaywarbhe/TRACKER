@@ -5,7 +5,67 @@ const emptyState = document.querySelector("#empty-state");
 const taskCount = document.querySelector("#task-count");
 const statusMessage = document.querySelector("#status-message");
 
+const STORAGE_KEY = "daymark.tasks.v1";
+
 let nextTaskId = 1;
+
+function readSavedTasks() {
+  let serializedTasks;
+
+  try {
+    serializedTasks = window.localStorage.getItem(STORAGE_KEY);
+  } catch {
+    statusMessage.textContent = "Saved tasks could not be accessed. Changes may not be saved.";
+    return [];
+  }
+
+  if (serializedTasks === null) {
+    return [];
+  }
+
+  try {
+    const savedTasks = JSON.parse(serializedTasks);
+    const isValidSnapshot =
+      Array.isArray(savedTasks) &&
+      savedTasks.every(
+        (task) =>
+          task &&
+          typeof task.text === "string" &&
+          task.text.trim().length > 0 &&
+          task.text.length <= 160 &&
+          typeof task.completed === "boolean",
+      );
+
+    if (!isValidSnapshot) {
+      throw new Error("Invalid saved task data");
+    }
+
+    return savedTasks;
+  } catch {
+    statusMessage.textContent = "Saved tasks could not be read. Add a task to replace the invalid saved data.";
+    return [];
+  }
+}
+
+function saveTasks() {
+  const taskSnapshot = Array.from(taskList.querySelectorAll(".task-item"), (listItem) => ({
+    text: listItem.querySelector(".task-text").textContent,
+    completed: listItem.querySelector(".task-toggle").checked,
+  }));
+
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(taskSnapshot));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function reportTaskChange(message) {
+  statusMessage.textContent = saveTasks()
+    ? message
+    : `${message} This change could not be saved in this browser.`;
+}
 
 function updateListSummary() {
   const taskTotal = taskList.children.length;
@@ -19,7 +79,7 @@ function updateListSummary() {
   }
 }
 
-function createTask(taskText) {
+function createTask(taskText, completed = false) {
   const taskId = nextTaskId;
   nextTaskId += 1;
 
@@ -30,12 +90,18 @@ function createTask(taskText) {
   checkbox.className = "task-toggle";
   checkbox.type = "checkbox";
   checkbox.id = `task-${taskId}`;
-  checkbox.setAttribute("aria-label", `Mark ${taskText} as complete`);
+  checkbox.checked = completed;
+  checkbox.setAttribute(
+    "aria-label",
+    `Mark ${taskText} as ${completed ? "pending" : "complete"}`,
+  );
 
   const label = document.createElement("label");
   label.className = "task-text";
   label.htmlFor = checkbox.id;
   label.textContent = taskText;
+
+  listItem.classList.toggle("is-complete", completed);
 
   const deleteButton = document.createElement("button");
   deleteButton.className = "delete-button";
@@ -49,16 +115,16 @@ function createTask(taskText) {
       "aria-label",
       `Mark ${taskText} as ${checkbox.checked ? "pending" : "complete"}`,
     );
-    statusMessage.textContent = checkbox.checked
-      ? `Completed: ${taskText}`
-      : `Marked as pending: ${taskText}`;
     updateListSummary();
+    reportTaskChange(
+      checkbox.checked ? `Completed: ${taskText}` : `Marked as pending: ${taskText}`,
+    );
   });
 
   deleteButton.addEventListener("click", () => {
     listItem.remove();
-    statusMessage.textContent = `Deleted: ${taskText}`;
     updateListSummary();
+    reportTaskChange(`Deleted: ${taskText}`);
     taskInput.focus();
   });
 
@@ -81,7 +147,8 @@ taskForm.addEventListener("submit", (event) => {
   createTask(taskText);
   taskInput.value = "";
   taskInput.focus();
-  statusMessage.textContent = `Added: ${taskText}`;
+  reportTaskChange(`Added: ${taskText}`);
 });
 
+readSavedTasks().forEach(({ text, completed }) => createTask(text, completed));
 updateListSummary();
