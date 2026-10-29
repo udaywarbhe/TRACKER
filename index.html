@@ -21,11 +21,11 @@
       <section class="tracker" aria-labelledby="page-title">
         <div class="intro">
           <p class="eyebrow"><span class="eyebrow-dot"></span> YOUR PERSONAL SPACE</p>
-          <h1 id="page-title">Make room<br />for what matters.</h1>
+          <h1 id="page-title">Your tasks</h1>
           <p class="intro-copy">Keep today's priorities close. One small step at a time.</p>
         </div>
 
-        <section class="task-panel" aria-label="Your tasks">
+        <section class="task-dashboard" aria-label="Your tasks">
           <form class="task-form" id="task-form">
             <label class="visually-hidden" for="task-input">Add a task</label>
             <input
@@ -43,13 +43,34 @@
             </button>
           </form>
 
-          <div class="list-heading">
-            <h2>YOUR TASKS</h2>
-            <span class="task-count" id="task-count">0 tasks</span>
+          <section class="summary-grid" aria-label="Task summary">
+            <dl class="summary-card">
+              <dt>Total Tasks</dt>
+              <dd id="total-count">0</dd>
+            </dl>
+            <dl class="summary-card summary-card--pending">
+              <dt>Pending</dt>
+              <dd id="pending-count">0</dd>
+            </dl>
+            <dl class="summary-card summary-card--completed">
+              <dt>Completed</dt>
+              <dd id="completed-count">0</dd>
+            </dl>
+          </section>
+
+          <div class="task-sections">
+            <section class="task-section" aria-labelledby="pending-heading">
+              <h2 id="pending-heading">Pending Tasks</h2>
+              <p class="empty-state" id="pending-empty-state">No pending tasks. Add one above when you're ready.</p>
+              <ul class="task-list" id="pending-list" aria-label="Pending tasks"></ul>
+            </section>
+            <section class="task-section" aria-labelledby="completed-heading">
+              <h2 id="completed-heading">Completed Tasks</h2>
+              <p class="empty-state" id="completed-empty-state">Completed tasks will appear here.</p>
+              <ul class="task-list" id="completed-list" aria-label="Completed tasks"></ul>
+            </section>
           </div>
 
-          <p class="empty-state" id="empty-state">A clear list is a fresh start. Add your first task above.</p>
-          <ul class="task-list" id="task-list" aria-label="Task list"></ul>
           <p class="visually-hidden" id="status-message" role="status" aria-live="polite"></p>
         </section>
 

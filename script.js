@@ -1,8 +1,12 @@
 const taskForm = document.querySelector("#task-form");
 const taskInput = document.querySelector("#task-input");
-const taskList = document.querySelector("#task-list");
-const emptyState = document.querySelector("#empty-state");
-const taskCount = document.querySelector("#task-count");
+const pendingTaskList = document.querySelector("#pending-list");
+const completedTaskList = document.querySelector("#completed-list");
+const totalCount = document.querySelector("#total-count");
+const pendingCount = document.querySelector("#pending-count");
+const completedCount = document.querySelector("#completed-count");
+const pendingEmptyState = document.querySelector("#pending-empty-state");
+const completedEmptyState = document.querySelector("#completed-empty-state");
 const statusMessage = document.querySelector("#status-message");
 
 const STORAGE_KEY = "daymark.tasks.v1";
@@ -48,10 +52,15 @@ function readSavedTasks() {
 }
 
 function saveTasks() {
-  const taskSnapshot = Array.from(taskList.querySelectorAll(".task-item"), (listItem) => ({
-    text: listItem.querySelector(".task-text").textContent,
-    completed: listItem.querySelector(".task-toggle").checked,
-  }));
+  const taskSnapshot = [
+    ...pendingTaskList.querySelectorAll(".task-item"),
+    ...completedTaskList.querySelectorAll(".task-item"),
+  ]
+    .sort((left, right) => Number(left.dataset.taskOrder) - Number(right.dataset.taskOrder))
+    .map((listItem) => ({
+      text: listItem.querySelector(".task-text").textContent,
+      completed: listItem.querySelector(".task-toggle").checked,
+    }));
 
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(taskSnapshot));
@@ -68,15 +77,23 @@ function reportTaskChange(message) {
 }
 
 function updateListSummary() {
-  const taskTotal = taskList.children.length;
-  const completedTotal = taskList.querySelectorAll(".task-toggle:checked").length;
+  const pendingTotal = pendingTaskList.children.length;
+  const completedTotal = completedTaskList.children.length;
 
-  emptyState.hidden = taskTotal > 0;
-  taskCount.textContent = `${taskTotal} ${taskTotal === 1 ? "task" : "tasks"}`;
+  totalCount.textContent = pendingTotal + completedTotal;
+  pendingCount.textContent = pendingTotal;
+  completedCount.textContent = completedTotal;
+  pendingEmptyState.hidden = pendingTotal > 0;
+  completedEmptyState.hidden = completedTotal > 0;
+}
 
-  if (taskTotal > 0) {
-    taskCount.textContent += ` · ${completedTotal} done`;
-  }
+function insertTaskInOrder(list, listItem) {
+  const taskOrder = Number(listItem.dataset.taskOrder);
+  const nextTask = Array.from(list.children).find(
+    (item) => Number(item.dataset.taskOrder) > taskOrder,
+  );
+
+  list.insertBefore(listItem, nextTask || null);
 }
 
 function createTask(taskText, completed = false) {
@@ -85,6 +102,7 @@ function createTask(taskText, completed = false) {
 
   const listItem = document.createElement("li");
   listItem.className = "task-item";
+  listItem.dataset.taskOrder = taskId;
 
   const checkbox = document.createElement("input");
   checkbox.className = "task-toggle";
@@ -110,11 +128,19 @@ function createTask(taskText, completed = false) {
   deleteButton.setAttribute("aria-label", `Delete ${taskText}`);
 
   checkbox.addEventListener("change", () => {
+    const shouldRestoreFocus = document.activeElement === checkbox;
     listItem.classList.toggle("is-complete", checkbox.checked);
     checkbox.setAttribute(
       "aria-label",
       `Mark ${taskText} as ${checkbox.checked ? "pending" : "complete"}`,
     );
+    insertTaskInOrder(
+      checkbox.checked ? completedTaskList : pendingTaskList,
+      listItem,
+    );
+    if (shouldRestoreFocus) {
+      checkbox.focus();
+    }
     updateListSummary();
     reportTaskChange(
       checkbox.checked ? `Completed: ${taskText}` : `Marked as pending: ${taskText}`,
@@ -129,7 +155,7 @@ function createTask(taskText, completed = false) {
   });
 
   listItem.append(checkbox, label, deleteButton);
-  taskList.append(listItem);
+  insertTaskInOrder(completed ? completedTaskList : pendingTaskList, listItem);
   updateListSummary();
 }
 
